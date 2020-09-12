@@ -6,3 +6,10 @@ It is highly inspired by [auto-cpufreq](https://github.com/AdnanHodzic/auto-cpuf
 The application is written in Rust.
 
 ![Running yablo daemon](images/yablo_daemon.png "Running yablo daemon")
+
+
+
+### Features
+- automatically sets CPU governor dependend on battery state and load
+- automatically activates or deactivates Turbo Boost dependend on battery state and load
+- saves energy by reducing the power consumption by the CPU

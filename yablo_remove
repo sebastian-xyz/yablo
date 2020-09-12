@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+
+function usage () {
+  echo
+  echo "Usage"
+  echo "  $0"
+  echo
+}
+
+function fancy_message() {
+    # $1 = type , $2 = message
+    # Message types
+    # 0 - info
+    # 1 - warning
+    # 2 - error
+    if [ -z "${1}" ] || [ -z "${2}" ]; then
+      return
+    fi
+
+    local RED="\e[31m"
+    local GREEN="\e[32m"
+    local YELLOW="\e[33m"
+    local RESET="\e[0m"
+    local MESSAGE_TYPE=""
+    local MESSAGE=""
+    MESSAGE_TYPE="${1}"
+    MESSAGE="${2}"
+    
+    case ${MESSAGE_TYPE} in
+      info) echo -e "  [${GREEN}+${RESET}] INFO: ${MESSAGE}";; # Previously "0"
+      warn) echo -e "  [${YELLOW}*${RESET}] WARNING: ${MESSAGE}";; # Previously "1"
+      error) echo -e "  [${RED}!${RESET}] ERROR: ${MESSAGE}";; # Previously "2"
+      *) echo -e "  [?] UNKNOWN: ${MESSAGE}";;
+    esac
+}
+
+# Check if the user running the script is root
+if [ "$(id -u)" -ne 0 ]; then
+  fancy_message error "You need to be root."
+  exit 1
+fi
+
+path_to_executable=$(which yablo 2> /dev/null)
+if [ ! -x "$path_to_executable" ] ; then
+    fancy_message error "Executable not found!"
+    exit 1
+fi
+
+echo ""
+read -p "Are you sure you want to remove yablo? [y/N]" -n 1 -r
+echo ""
+
+if [[ ${REPLY} =~ ^[Yy]$ ]]; then
+    fancy_message info "Checking for running service"
+    SERVICE_ACTIVE=$(systemctl is-active yablo.service)
+    if [[ ${SERVICE_ACTIVE} == "active" ]]; then
+        systemctl stop yablo.service
+        fancy_message info "Stopped service"
+        systemctl disable yablo.service
+        fancy_message info "Disabled service"
+        rm /etc/systemd/system/yablo.service
+        fancy_message info "Removed service"
+    else
+        fancy_message info "No running service found."
+    fi
+
+    fancy_message info "Stopping all running yablo processes"
+    killall yablo > /dev/null
+
+    rm /var/log/yablo.log
+    fancy_message info "Removed logfile"
+
+    if [ -x "${path_to_executable}" ] ; then
+        rm ${path_to_executable}
+        fancy_message info "Removed executable"
+    fi
+
+    path_to_executable=$(which yablo_remove 2> /dev/null)
+        if [ -x "${path_to_executable}" ] ; then
+        rm ${path_to_executable}
+        fancy_message info "Removed uninstaller"
+    fi
+    fancy_message info "All done"
+
+fi
+

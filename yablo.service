@@ -1,0 +1,12 @@
+[Unit]
+Description=yablo - Yet Another Battery Life Optimizer for Linux
+After=network.target network-online.target
+ConditionPathExists=/var/log/yablo.log
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/local/bin/yablo --daemon
+StandardOutput=append:/var/log/yablo.log
+[Install]
+WantedBy=multi-user.target

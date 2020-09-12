@@ -44,3 +44,21 @@ governor = "powersave"
 turbo = true
 
 ```
+
+## Installation
+
+### Install script
+
+The easiest way is to use the install script. It checks for system compatability and installs all the components.
+It also prompts if you want to start and enable the systemd service to have `yablo` always running.
+
+```bash
+git clone https://github.com/sebastian-xyz/yablo.git
+cd yablo
+sudo ./install_script $(whoami)
+```
+The install script allows to choose between the compilation of the binary locally or downloading it from GitHub and check the integrity using a hashsum.
+It also deploys a remove script in the `PATH` to remove the whole program without manual intervention.
+Just run `yablo_remove` everything will be removed.
+
+**Note**: The username is necessary for the installation when it's not compiled locally to avoid downloading the binary as root.

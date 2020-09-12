@@ -142,7 +142,7 @@ if [[ ${REPLY} =~ ^[Yy]$ ]]; then
       exit 1
     fi
 
-    SHA_SUM="bebbd863665a885cec8bfe51cd9a4659af5ebf43e6c5d462fa9d7117fe509630  yablo_0_1_0.tar.gz"
+    SHA_SUM="221180f981c3e616f7025c80efcda64c1e2df62c7d2d3acc0d61407524eb9ff5  yablo_0_1_0.tar.gz"
     echo ${SHA_SUM} | sha256sum --quiet -c
     if [ $? -eq 0 ]; then
       fancy_message info "Binary verified"

@@ -25,14 +25,14 @@ fn main() {
             Arg::with_name("debug")
                 .short("d")
                 .long("debug")
-                .help("Show debug info")
+                .help("Shows debug/system info")
                 .takes_value(false),
         )
         .arg(
             Arg::with_name("live")
                 .short("l")
                 .long("live")
-                .help("Monitor and make suggested CPU optimizations")
+                .help("Prints information and applies suggested CPU optimizations")
                 .takes_value(false),
         )
         .arg(
@@ -45,7 +45,7 @@ fn main() {
             Arg::with_name("monitor")
                 .short("m")
                 .long("monitor")
-                .help("Monitor and suggest CPU optimizations")
+                .help("Suggests CPU optimizations for the current load")
                 .takes_value(false),
         )
         .get_matches();

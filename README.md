@@ -22,3 +22,25 @@ Available flags
 - `--log`: View live CPU optimization log made by daemon
 - `-m`, `--monitor`: Suggests CPU optimizations for the current load
 - `-V`, `--version`: Prints version information
+
+## Config
+
+The configuration file is stored at `/etc/yablo/config.toml`.
+It allows setting the following parameters separately for the battery states `plugged in` and `on battery`
+- `governor` (*String*): sets the default governor for low system load
+- `turbo` (*Bool*): allows disabling Turbo Boost to save energy
+- `second_stage_governor` (*String*): sets a different governor for high system load or CPU usage. Can be used to compensate for a disabled turbo boost when running on battery (optional, default: `powersave` or `performance` dependend on battery state)
+- `turbo_delay` (*Integer*): sets the delay in seconds before the Turbo gets activated (optional, default: 0)
+
+Default config:
+```toml
+# /etc/yablo/config.toml
+[plugged_in]
+governor = "performance"
+turbo = true
+
+[on_battery]
+governor = "powersave"
+turbo = true
+
+```

@@ -1,0 +1,217 @@
+
+#!/usr/bin/env bash
+
+function usage () {
+  echo
+  echo "Usage"
+  echo "  $0 username"
+  echo
+}
+
+function fancy_message() {
+    # $1 = type , $2 = message
+    # Message types
+    # 0 - info
+    # 1 - warning
+    # 2 - error
+    if [ -z "${1}" ] || [ -z "${2}" ]; then
+      return
+    fi
+
+    local RED="\e[31m"
+    local GREEN="\e[32m"
+    local YELLOW="\e[33m"
+    local RESET="\e[0m"
+    local MESSAGE_TYPE=""
+    local MESSAGE=""
+    MESSAGE_TYPE="${1}"
+    MESSAGE="${2}"
+    
+    case ${MESSAGE_TYPE} in
+      info) echo -e "  [${GREEN}+${RESET}] INFO: ${MESSAGE}";; # Previously "0"
+      warn) echo -e "  [${YELLOW}*${RESET}] WARNING: ${MESSAGE}";; # Previously "1"
+      error) echo -e "  [${RED}!${RESET}] ERROR: ${MESSAGE}";; # Previously "2"
+      *) echo -e "  [?] UNKNOWN: ${MESSAGE}";;
+    esac
+}
+
+fancy_message info "Welcome to the yablo installer. The Automatic Battery Optimizer for Linux 🐧."
+# Check if the user running the script is root
+if [ "$(id -u)" -ne 0 ]; then
+  fancy_message error "You need to be root."
+  exit 1
+fi
+
+# Take command line arguments
+if [ $# -eq 0 ]; then
+    fancy_message warn "No arguments supplied"
+    usage
+    exit 1
+fi
+
+if [ -z "$1" ]; then
+  fancy_message warn "No arguments supplied"
+  usage
+  exit 1
+fi
+
+USERNAME=$1
+
+# check if already installed
+path_to_executable=$(which yablo 2> /dev/null)
+if [ -x "$path_to_executable" ] ; then
+  fancy_message warn "Already installed at ${path_to_executable}"
+  echo ""
+  read -p "Do you want to update your installation? [y/N]" -n 1 -r
+  echo ""
+  UPDATE=0
+
+  if [[ ${REPLY} =~ ^[Yy]$ ]]; then
+    fancy_message info "Updating installation"
+    UPDATE=1
+  else
+    exit 1
+  fi
+  
+else
+  fancy_message info "No installations detected."
+fi
+
+# check if systemd is on system
+if [ ! -x "$(which systemctl 2> /dev/null )" ] ; then
+  fancy_message error "systemd is not available on your system. You need to manually install it."
+  exit 1
+else
+  fancy_message info "Found systemd."
+fi
+fancy_message info "All checks passed."
+echo ""
+read -p "Are you sure you want to install yablo? [y/N]" -n 1 -r
+echo ""
+
+if [[ ${REPLY} =~ ^[Yy]$ ]]; then
+
+  fancy_message info "Starting installation."
+
+  echo ""
+  read -p "Do you want to build it locally? [y/N]" -n 1 -r
+  echo ""
+
+  INSTALL_PATH="/usr/local/bin/yablo"
+  INSTALL_PATH_REMOVE="/usr/local/bin/yablo_remove"
+
+
+  if [[ ${REPLY} =~ ^[Yy]$ ]]; then
+
+    # check if rust is available on system
+    path_to_executable=$(which cargo 2> /dev/null)
+    if [ -x "$path_to_executable" ] ; then
+      fancy_message warn "Rust is on system"
+    else
+      fancy_message error "Rust is not installed on system. Exit."
+      exit 1
+    fi
+
+    cargo build --release
+    if [ $? -eq 0 ]; then
+      fancy_message info "Successfully build binary"
+    else
+      fancy_message error "Build didn't finish successful"
+      exit 1
+    fi
+
+  if [ ${UPDATE} -eq 1 ]; then
+    fancy_message info "Stopping systemd service"
+    systemctl stop yablo.service
+  fi
+
+    cp target/release/yablo ${INSTALL_PATH}
+    fancy_message info "Installed binary"
+    
+
+  else
+    fancy_message info "Downloading binary"
+    ARCHIVE_NAME="yablo_0_1_0.tar.gz"
+    sudo -u ${USERNAME} bash -c '\
+      curl -L -s -o yablo_0_1_0.tar.gz "https://github.com/sebastian-xyz/yablo/releases/download/v0.1.0/yablo_0_1_0.tar.gz"
+    '
+    if [ $? -eq 0 ]; then
+      fancy_message info "Successfully downloaded binary"
+    else
+      fancy_message error "Download failed"
+      exit 1
+    fi
+
+    SHA_SUM="bebbd863665a885cec8bfe51cd9a4659af5ebf43e6c5d462fa9d7117fe509630  yablo_0_1_0.tar.gz"
+    echo ${SHA_SUM} | sha256sum --quiet -c
+    if [ $? -eq 0 ]; then
+      fancy_message info "Binary verified"
+    else
+      fancy_message error "Binary checksum is wrong"
+      exit 1
+    fi
+
+    tar -xvzf yablo_0_1_0.tar.gz 1> /dev/null
+    if [ $? -eq 0 ]; then
+      fancy_message info "Extracted binary"
+    else
+      fancy_message error "Failed to extract binary"
+      exit 1
+    fi
+
+    if [ ${UPDATE} -eq 1 ]; then
+      fancy_message info "Stopping systemd service"
+      systemctl stop yablo.service
+    fi
+    cp yablo ${INSTALL_PATH}
+    fancy_message info "Installed binary"
+  fi
+
+  chmod +x yablo_remove
+  cp yablo_remove ${INSTALL_PATH_REMOVE}
+
+  LOG_FILE="/var/log/yablo.log"
+  if [ -f ${LOG_FILE} ]; then
+    fancy_message warn "Logfile exists already. Backing up the old one."
+    cp --archive ${LOG_FILE} '/var/log/yablo-COPY-$(date +"%Y%m%d%H%M%S")'
+    echo "" > ${LOG_FILE}
+    fancy_message info "Created new empty log file"
+  else
+    fancy_message info "Created new empty log file"
+    touch ${LOG_FILE}
+  fi
+
+  SYSTEMD_SERVICE="/etc/systemd/system/yablo.service"
+  cp yablo.service ${SYSTEMD_SERVICE}
+  fancy_message info "Created systemd service"
+
+  echo ""
+  read -p "Do you want to enable the systemd service? [y/N]" -n 1 -r
+  echo ""
+
+  if [[ ${REPLY} =~ ^[Yy]$ ]]; then
+
+    if [ ${UPDATE} -eq 1 ]; then
+      systemctl daemon-reload
+    else
+      fancy_message info "Activated systemd service"
+      systemctl enable yablo.service 1> /dev/null
+    fi
+
+  systemctl start yablo.service
+  fancy_message info "Started systemd service"
+
+  else
+    if [ ${UPDATE} -eq 1 ]; then
+      systemctl daemon-reload
+    fi
+  fi
+
+  fancy_message info "Successfully installed yablo"
+  
+  fancy_message info "Cleaning up"
+  rm yablo_0_1_0.tar.gz yablo
+
+else
+  fancy_message error "Aborting"
+fi

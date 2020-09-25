@@ -144,6 +144,7 @@ pub struct SystemInfo {
     pub ac_power: bool,
     pub loadavg: f32,
     pub loadperc: f32,
+    pub mem_usage: (u64, u64),
     pub turbo_invert: bool,
     pub turbo_avail: bool,
     pub cpu_freqs: Vec<i32>,
@@ -187,6 +188,13 @@ pub fn get_sys_info(sys: &System, turbo_avail: bool, invert: bool, num_cpus: i32
         turbo_avail: turbo_avail,
         turbo_invert: invert,
         cpu_freqs: get_cpu_freq(num_cpus),
+        ram_usage: match sys.memory() {
+            Ok(mem) => (mem.total.as_u64(), mem.free.as_u64()),
+            Err(x) => {
+                eprintln!("[{}] error: {}", "!".red(), x);
+                std::process::exit(1)
+            }
+        }
     }
 }
 
@@ -367,9 +375,10 @@ pub fn print_info(sys_info: &SystemInfo, terminalout: &mut std::io::Stdout) {
     } else {
         println!("[{}] Currently running on battery power", "+".green());
     }
-    println!("[{}] CPU temp   : {}°C", "+".green(), sys_info.temperature);
-    println!("[{}] System load: {:.2}", "+".green(), sys_info.loadavg);
-    println!("[{}] CPU usage  : {:.2}%", "+".green(), sys_info.loadperc);
+    println!("[{}] CPU temp       : {}°C", "+".green(), sys_info.temperature);
+    println!("[{}] Memory usage   : {:.2}GB/{:.2}GB", "+".green(), (sys_info.mem_usage.0 - sys_info.mem_usage.1) as f32/1e9, sys_info.mem_usage.0 as f32/1e9);    
+    println!("[{}] System load    : {:.2}", "+".green(), sys_info.loadavg);
+    println!("[{}] CPU usage      : {:.2}%", "+".green(), sys_info.loadperc);
     println!("[{}] CPU frequencies: ", "+".green());
     for cpu in 0..sys_info.cpu_freqs.len() {
         println!(

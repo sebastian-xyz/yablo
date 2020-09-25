@@ -44,7 +44,7 @@ pub fn check_config_existence() {
             match std::fs::create_dir_all(config_path) {
                 Ok(_) => (),
                 Err(x) => {
-                    eprintln!("error: {}", x);
+                    eprintln!("[{}] Error: {}", "!".red(), x);
                     std::process::exit(1)
                 }
             };
@@ -64,7 +64,7 @@ turbo = true
             match std::fs::write(format!("{}{}", config_path, "config.toml"), default_config) {
                 Ok(_) => (),
                 Err(x) => {
-                    eprintln!("error: {}", x);
+                    eprintln!("[{}] Error: {}","!".red() , x);
                     std::process::exit(1);
                 }
             }
@@ -76,7 +76,7 @@ pub fn check_config_errors(config: &Config) {
     let avail_govs = get_available_governors();
 
     if avail_govs.is_empty() {
-        eprintln!("No govenors found. Exit.");
+        eprintln!("[{}] Error: No govenors found. Exit.", "!".red());
         std::process::exit(1)
     }
 
@@ -117,7 +117,7 @@ pub fn check_config_errors(config: &Config) {
                 .as_ref()
                 .unwrap()
     }) {
-        eprintln!("At least one governor specified in config file isn't available!\n 'cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors' to see available governors");
+        eprintln!("[{}] Error: At least one governor specified in config file isn't available!\n     'cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors' to see available governors", "!".red());
         std::process::exit(1)
     }
 }
@@ -129,7 +129,7 @@ pub fn get_config() -> Config {
     ) {
         Ok(c) => c,
         Err(x) => {
-            eprintln!("error: {}", x);
+            eprintln!("[{}] Error: {}","!".red() , x);
             std::process::exit(1)
         }
     };
@@ -155,21 +155,21 @@ pub fn get_sys_info(sys: &System, turbo_avail: bool, invert: bool, num_cpus: i32
         loadavg: match sys.load_average() {
             Ok(loadavg) => loadavg.one,
             Err(x) => {
-                eprintln!("error: {}", x);
+                eprintln!("[{}] Error: {}", "!".red(), x);
                 std::process::exit(1)
             }
         },
         temperature: match sys.cpu_temp() {
             Ok(temp) => temp,
             Err(x) => {
-                eprintln!("error: {}", x);
+                eprintln!("[{}] Error: {}", "!".red(), x);
                 std::process::exit(1)
             }
         },
         ac_power: match sys.on_ac_power() {
             Ok(ac_pow) => ac_pow,
             Err(x) => {
-                eprintln!("error: {}", x);
+                eprintln!("[{}] Error: {}", "!".red(), x);
                 std::process::exit(1)
             }
         },
@@ -181,17 +181,17 @@ pub fn get_sys_info(sys: &System, turbo_avail: bool, invert: bool, num_cpus: i32
                 // cpu.system * 100.0
             }
             Err(x) => {
-                eprintln!("error: {}", x);
+                eprintln!("[{}] Error: {}", "!".red(), x);
                 std::process::exit(1)
             }
         },
         turbo_avail: turbo_avail,
         turbo_invert: invert,
         cpu_freqs: get_cpu_freq(num_cpus),
-        ram_usage: match sys.memory() {
+        mem_usage: match sys.memory() {
             Ok(mem) => (mem.total.as_u64(), mem.free.as_u64()),
             Err(x) => {
-                eprintln!("[{}] error: {}", "!".red(), x);
+                eprintln!("[{}] Error: {}", "!".red(), x);
                 std::process::exit(1)
             }
         }
@@ -204,7 +204,7 @@ pub fn get_sys_info(sys: &System, turbo_avail: bool, invert: bool, num_cpus: i32
 
 pub fn check_root() {
     if !Uid::effective().is_root() {
-        eprintln!("You have to run this program as root!");
+        eprintln!("[{}] Error: You have to run this program as root!", "!".red());
         std::process::exit(1)
     }
 }
@@ -229,7 +229,7 @@ pub fn check_daemon() {
         .expect("Failed to execute command");
 
     if String::from_utf8_lossy(&output.stdout) == "active" {
-        eprintln!("Daemon already installed. Nothing to do. Exit.");
+        eprintln!("[{}] Error: Daemon already installed. Nothing to do. Exit.", "!".red());
         std::process::exit(1)
     }
 }
@@ -241,7 +241,7 @@ pub fn check_log() {
         Err(_) => match std::fs::File::create(path) {
             Ok(_) => (),
             Err(x) => {
-                eprintln!("error: {}", x);
+                eprintln!("[{}] Error: {}", "!".red(), x);
                 std::process::exit(1);
             }
         },
@@ -285,7 +285,7 @@ fn set_turbo(new_state: bool, invert: bool) {
         match std::fs::write(p_state, output) {
             Ok(_) => (),
             Err(_) => {
-                eprintln!("couldn't write new turbo state. exit.");
+                eprintln!("[{}] Error: couldn't write new turbo state. exit.", "!".red());
                 std::process::exit(1);
             }
         }
@@ -295,7 +295,7 @@ fn set_turbo(new_state: bool, invert: bool) {
         match std::fs::write(cpufreq, output) {
             Ok(_) => (),
             Err(_) => {
-                eprintln!("couldn't write new turbo state. exit.");
+                eprintln!("[{}] Error: couldn't write new turbo state. exit.", "!".red());
                 std::process::exit(1);
             }
         }
@@ -327,7 +327,7 @@ fn set_governor(governor: &str, num_cpus: i32) {
         ) {
             Ok(_) => (),
             Err(x) => {
-                eprintln!("error: {}. Exit.", x);
+                eprintln!("[{}] Error: {}. exit.", "!".red(), x);
                 std::process::exit(1);
             }
         };
@@ -360,7 +360,7 @@ pub fn print_info(sys_info: &SystemInfo, terminalout: &mut std::io::Stdout) {
     )) {
         Ok(_) => (),
         Err(x) => {
-            eprintln!("error: {}", x);
+            eprintln!("[{}] Error: {}", "!".red(), x);
             std::process::exit(1)
         }
     };
@@ -392,7 +392,7 @@ pub fn print_info(sys_info: &SystemInfo, terminalout: &mut std::io::Stdout) {
     match terminalout.flush() {
         Ok(_) => (),
         Err(x) => {
-            eprintln!("error: {}", x);
+            eprintln!("[{}] Error: {}", "!".red(), x);
             std::process::exit(1);
         }
     };
@@ -610,7 +610,7 @@ pub fn optimize_powerstate(
     match terminalout.flush() {
         Ok(_) => (),
         Err(x) => {
-            eprintln!("error: {}", x);
+            eprintln!("[{}] Error: {}", "!".red(), x);
             std::process::exit(1)
         }
     };
@@ -853,7 +853,7 @@ pub fn monitor_state(
     match terminalout.flush() {
         Ok(_) => (),
         Err(x) => {
-            eprintln!("error: {}", x);
+            eprintln!("[{}] Error: {}", "!".red(), x);
             std::process::exit(1)
         }
     };

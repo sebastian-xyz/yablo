@@ -7,6 +7,7 @@ extern crate toml;
 use clap::{App, Arg};
 use systemstat::{Platform, System};
 use crossterm::ExecutableCommand;
+use crossterm::style::Colorize;
 
 mod lib;
 
@@ -56,7 +57,7 @@ fn main() {
         match stdout.execute(crossterm::terminal::EnterAlternateScreen) {
             Ok(_) => (),
             Err(x) => {
-                eprintln!("error: {}", x);
+                eprintln!("[{}] Error: {}", "!".red(), x);
                 std::process::exit(1)
             }
         };
@@ -86,7 +87,7 @@ fn main() {
         match stdout.execute(crossterm::terminal::EnterAlternateScreen) {
             Ok(_) => (),
             Err(x) => {
-                eprintln!("error: {}", x);
+                eprintln!("[{}] Error: {}", "!".red(),  x);
                 std::process::exit(1)
             }
         };
@@ -115,7 +116,7 @@ fn main() {
         match stdout.execute(crossterm::terminal::EnterAlternateScreen) {
             Ok(_) => (),
             Err(x) => {
-                eprintln!("error: {}", x);
+                eprintln!("[{}] Error: {}", "!".red(), x);
                 std::process::exit(1)
             }
         };
@@ -143,7 +144,7 @@ fn main() {
         match stdout.execute(crossterm::terminal::EnterAlternateScreen) {
             Ok(_) => (),
             Err(x) => {
-                eprintln!("error: {}", x);
+                eprintln!("[{}] Error: {}", "!".red(), x);
                 std::process::exit(1)
             }
         };

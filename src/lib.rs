@@ -503,9 +503,13 @@ pub fn print_info(sys_info: &SystemInfo, terminalout: &mut std::io::Stdout) {
             std::process::exit(1)
         }
     };
-    println!("{}", ":".repeat(50));
-    println!("{} System state {}", ":".repeat(18), ":".repeat(18));
-    println!("{}\n", ":".repeat(50));
+    println!("{}", "\u{2591}".repeat(50).blue());
+    println!(
+        "{} System state {}",
+        "\u{2591}".repeat(18).blue(),
+        "\u{2591}".repeat(18).blue()
+    );
+    println!("{}\n", "\u{2591}".repeat(50).blue());
     if !sys_info.turbo_avail {
         println!("[{}] No turbo found!", "!".yellow());
     }

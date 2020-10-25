@@ -544,205 +544,56 @@ pub fn optimize_powerstate(
     counter: &mut u32,
     terminalout: &mut std::io::Stdout,
 ) {
-    let time_increment_per_run = 4;
-    println!("{}", ":".repeat(50));
-    println!("{} Apply optimizations {}", ":".repeat(14), ":".repeat(15));
-    println!("{}\n", ":".repeat(50));
+    println!("{}", "\u{2591}".repeat(50).blue());
+    println!(
+        "{} Apply optimizations {}",
+        "\u{2591}".repeat(14).blue(),
+        "\u{2591}".repeat(15).blue()
+    );
+    println!("{}\n", "\u{2591}".repeat(50).blue());
     if sys_info.ac_power {
-        if sys_info.loadavg > (10.0 * cpus as f32) / 100.0 {
-            println!("[{}] High system load", "+".green());
-            println!(
-                "[{}] Using '{}' governor",
-                "+".green(),
-                config
-                    .plugged_in
-                    .as_ref()
-                    .unwrap()
-                    .second_stage_governor
-                    .as_ref()
-                    .unwrap()
-            );
-            set_governor(
-                config
-                    .plugged_in
-                    .as_ref()
-                    .unwrap()
-                    .second_stage_governor
-                    .as_ref()
-                    .unwrap(),
-                cpus,
-            );
-            if config.plugged_in.as_ref().unwrap().turbo.unwrap() {
-                *counter = *counter + time_increment_per_run;
-                if *counter >= (*config).plugged_in.as_ref().unwrap().turbo_delay.unwrap() {
-                    set_turbo(true, sys_info.turbo_invert);
-                    println!("[{}] Turbo activated", "+".green());
-                } else {
-                    println!("[{}] Turbo deactivated", "+".green());
-                }
-            } else {
-                set_turbo(false, sys_info.turbo_invert);
-                println!("[{}] Turbo deactivated", "+".green());
-            }
-        } else if sys_info.loadperc >= 25.0 {
-            println!("[{}] High CPU usage", "+".green());
-            println!(
-                "[{}] Using '{}' governor",
-                "+".green(),
-                config
-                    .plugged_in
-                    .as_ref()
-                    .unwrap()
-                    .second_stage_governor
-                    .as_ref()
-                    .unwrap()
-            );
-            set_governor(
-                config
-                    .plugged_in
-                    .as_ref()
-                    .unwrap()
-                    .second_stage_governor
-                    .as_ref()
-                    .unwrap(),
-                cpus,
-            );
-            if config.plugged_in.as_ref().unwrap().turbo.unwrap() {
-                *counter = *counter + time_increment_per_run;
-                if *counter >= (*config).plugged_in.as_ref().unwrap().turbo_delay.unwrap() {
-                    set_turbo(true, sys_info.turbo_invert);
-                    println!("[{}] Turbo activated", "+".green());
-                } else {
-                    println!("[{}] Turbo deactivated", "+".green());
-                }
-            } else {
-                set_turbo(false, sys_info.turbo_invert);
-                println!("[{}] Turbo deactivated", "+".green());
-            }
+        if sys_info.loadavg
+            > config
+                .plugged_in
+                .as_ref()
+                .unwrap()
+                .loadavg_threshold
+                .unwrap()
+        {
+            high_load_setting_ac(&config, &sys_info, cpus, counter);
+        } else if sys_info.loadperc
+            >= config
+                .plugged_in
+                .as_ref()
+                .unwrap()
+                .loadperc_threshold
+                .unwrap()
+        {
+            high_load_setting_ac(&config, &sys_info, cpus, counter);
         } else {
-            println!("[{}] Load optimal", "+".green());
-            println!(
-                "[{}] Using '{}' governor",
-                "+".green(),
-                config
-                    .plugged_in
-                    .as_ref()
-                    .unwrap()
-                    .governor
-                    .as_ref()
-                    .unwrap()
-            );
-            *counter = 0;
-            set_governor(
-                config
-                    .plugged_in
-                    .as_ref()
-                    .unwrap()
-                    .governor
-                    .as_ref()
-                    .unwrap(),
-                cpus,
-            );
-            println!("[{}] Turbo deactivated", "+".green());
-            set_turbo(false, sys_info.turbo_invert);
+            low_load_setting_ac(&config, &sys_info, cpus, counter);
         }
     } else {
-        if sys_info.loadavg > (15.0 * cpus as f32) / 100.0 {
-            println!("[{}] High system load", "+".green());
-            println!(
-                "[{}] Using '{}' governor",
-                "+".green(),
-                config
-                    .on_battery
-                    .as_ref()
-                    .unwrap()
-                    .second_stage_governor
-                    .as_ref()
-                    .unwrap()
-            );
-            set_governor(
-                config
-                    .on_battery
-                    .as_ref()
-                    .unwrap()
-                    .second_stage_governor
-                    .as_ref()
-                    .unwrap(),
-                cpus,
-            );
-            if config.on_battery.as_ref().unwrap().turbo.unwrap() {
-                *counter = *counter + time_increment_per_run;
-                if *counter >= (*config).on_battery.as_ref().unwrap().turbo_delay.unwrap() {
-                    set_turbo(true, sys_info.turbo_invert);
-                    println!("[{}] Turbo activated", "+".green());
-                } else {
-                    println!("[{}] Turbo deactivated", "+".green());
-                }
-            } else {
-                set_turbo(false, sys_info.turbo_invert);
-                println!("[{}] Turbo deactivated", "+".green());
-            }
-        } else if sys_info.loadperc >= 15.0 {
-            println!("[{}] High CPU usage", "+".green());
-            println!(
-                "[{}] Using '{}' governor",
-                "+".green(),
-                config
-                    .on_battery
-                    .as_ref()
-                    .unwrap()
-                    .second_stage_governor
-                    .as_ref()
-                    .unwrap()
-            );
-            set_governor(
-                config
-                    .on_battery
-                    .as_ref()
-                    .unwrap()
-                    .second_stage_governor
-                    .as_ref()
-                    .unwrap(),
-                cpus,
-            );
-            if config.on_battery.as_ref().unwrap().turbo.unwrap() {
-                *counter = *counter + time_increment_per_run;
-                if *counter >= (*config).on_battery.as_ref().unwrap().turbo_delay.unwrap() {
-                    set_turbo(true, sys_info.turbo_invert);
-                    println!("[{}] Turbo activated", "+".green());
-                } else {
-                    println!("[{}] Turbo deactivated", "+".green());
-                }
-            } else {
-                set_turbo(false, sys_info.turbo_invert);
-                println!("[{}] Turbo deactivated", "+".green());
-            }
+        if sys_info.loadavg
+            > config
+                .on_battery
+                .as_ref()
+                .unwrap()
+                .loadavg_threshold
+                .unwrap()
+        {
+            high_load_setting_bat(&config, &sys_info, cpus, counter);
+        } else if sys_info.loadperc
+            >= config
+                .on_battery
+                .as_ref()
+                .unwrap()
+                .loadperc_threshold
+                .unwrap()
+        {
+            high_load_setting_bat(&config, &sys_info, cpus, counter);
         } else {
-            println!("[{}] Load optimal", "+".green());
-            println!(
-                "[{}] Using '{}' governor",
-                "+".green(),
-                config
-                    .on_battery
-                    .as_ref()
-                    .unwrap()
-                    .governor
-                    .as_ref()
-                    .unwrap()
-            );
-            println!("[{}] Turbo deactivated", "+".green());
-            set_governor(
-                config
-                    .on_battery
-                    .as_ref()
-                    .unwrap()
-                    .governor
-                    .as_ref()
-                    .unwrap(),
-                cpus,
-            );
-            *counter = 0;
-            set_turbo(false, sys_info.turbo_invert)
+            low_load_setting_bat(&config, &sys_info, cpus, counter);
         }
     }
     println!("");
@@ -1050,15 +901,203 @@ pub fn restart_daemon() {
         std::process::exit(1)
     }
 }
+
+/*
+
+    Setting governor and turbo helper
+
+*/
+
+fn high_load_setting_bat(config: &Config, sys_info: &SystemInfo, cpus: i32, counter: &mut u32) {
+    if sys_info.battery_capacity
+        > config
+            .on_battery
+            .as_ref()
+            .unwrap()
+            .battery_threshold
+            .unwrap()
+    {
+        println!("[{}] High system load", "+".green());
+        println!(
+            "[{}] Using '{}' governor",
+            "+".green(),
+            config
+                .on_battery
+                .as_ref()
+                .unwrap()
+                .second_stage_governor
+                .as_ref()
+                .unwrap()
+        );
+        set_governor(
+            config
+                .on_battery
+                .as_ref()
+                .unwrap()
+                .second_stage_governor
+                .as_ref()
+                .unwrap(),
+            cpus,
+        );
+        if config.on_battery.as_ref().unwrap().turbo.unwrap() {
+            *counter = *counter + TIME_INCREMENT_PER_RUN;
+            if *counter >= (*config).on_battery.as_ref().unwrap().turbo_delay.unwrap() {
+                set_turbo(true, sys_info.turbo_invert);
+                println!("[{}] Turbo activated", "+".green());
+            } else {
+                println!("[{}] Turbo deactivated", "+".green());
+            }
+        } else {
+            set_turbo(false, sys_info.turbo_invert);
+            println!("[{}] Turbo deactivated", "+".green());
+        }
     } else {
-        20 + num_cpus
-    };
-    let _cmd = std::process::Command::new("tail")
-        .args(&["-n", &num_lines.to_string(), "-f", path])
-        .stdout(std::process::Stdio::inherit())
-        .stderr(std::process::Stdio::inherit())
-        .spawn()
-        .unwrap();
+        println!("[{}] High system load", "+".green());
+        println!("[{}] Low battery capacity", "!".yellow());
+        println!(
+            "[{}] Using '{}' governor",
+            "+".green(),
+            config
+                .on_battery
+                .as_ref()
+                .unwrap()
+                .low_battery_governor
+                .as_ref()
+                .unwrap()
+        );
+        set_governor("powersave", cpus);
+        set_turbo(false, sys_info.turbo_invert);
+        println!("[{}] Turbo deactivated", "+".green());
+    }
+}
+
+fn low_load_setting_bat(config: &Config, sys_info: &SystemInfo, cpus: i32, counter: &mut u32) {
+    if sys_info.battery_capacity
+        > config
+            .on_battery
+            .as_ref()
+            .unwrap()
+            .battery_threshold
+            .unwrap()
+    {
+        println!("[{}] Load optimal", "+".green());
+        println!(
+            "[{}] Using '{}' governor",
+            "+".green(),
+            config
+                .on_battery
+                .as_ref()
+                .unwrap()
+                .governor
+                .as_ref()
+                .unwrap()
+        );
+        println!("[{}] Turbo deactivated", "+".green());
+        set_governor(
+            config
+                .on_battery
+                .as_ref()
+                .unwrap()
+                .governor
+                .as_ref()
+                .unwrap(),
+            cpus,
+        );
+        *counter = 0;
+        set_turbo(false, sys_info.turbo_invert);
+    } else {
+        println!("[{}] Load optimal", "+".green());
+        println!("[{}] Low battery capacity", "!".yellow());
+        println!(
+            "[{}] Using '{}' governor",
+            "+".green(),
+            config
+                .on_battery
+                .as_ref()
+                .unwrap()
+                .low_battery_governor
+                .as_ref()
+                .unwrap()
+        );
+        println!("[{}] Turbo deactivated", "+".green());
+        set_governor(
+            config
+                .on_battery
+                .as_ref()
+                .unwrap()
+                .governor
+                .as_ref()
+                .unwrap(),
+            cpus,
+        );
+        *counter = 0;
+        set_turbo(false, sys_info.turbo_invert);
+    }
+}
+
+fn high_load_setting_ac(config: &Config, sys_info: &SystemInfo, cpus: i32, counter: &mut u32) {
+    println!("[{}] High CPU usage", "+".green());
+    println!(
+        "[{}] Using '{}' governor",
+        "+".green(),
+        config
+            .plugged_in
+            .as_ref()
+            .unwrap()
+            .second_stage_governor
+            .as_ref()
+            .unwrap()
+    );
+    set_governor(
+        config
+            .plugged_in
+            .as_ref()
+            .unwrap()
+            .second_stage_governor
+            .as_ref()
+            .unwrap(),
+        cpus,
+    );
+    if config.plugged_in.as_ref().unwrap().turbo.unwrap() {
+        *counter = *counter + TIME_INCREMENT_PER_RUN;
+        if *counter >= (*config).plugged_in.as_ref().unwrap().turbo_delay.unwrap() {
+            set_turbo(true, sys_info.turbo_invert);
+            println!("[{}] Turbo activated", "+".green());
+        } else {
+            println!("[{}] Turbo deactivated", "+".green());
+        }
+    } else {
+        set_turbo(false, sys_info.turbo_invert);
+        println!("[{}] Turbo deactivated", "+".green());
+    }
+}
+
+fn low_load_setting_ac(config: &Config, sys_info: &SystemInfo, cpus: i32, counter: &mut u32) {
+    println!("[{}] Load optimal", "+".green());
+    println!(
+        "[{}] Using '{}' governor",
+        "+".green(),
+        config
+            .plugged_in
+            .as_ref()
+            .unwrap()
+            .governor
+            .as_ref()
+            .unwrap()
+    );
+    *counter = 0;
+    set_governor(
+        config
+            .plugged_in
+            .as_ref()
+            .unwrap()
+            .governor
+            .as_ref()
+            .unwrap(),
+        cpus,
+    );
+    println!("[{}] Turbo deactivated", "+".green());
+    set_turbo(false, sys_info.turbo_invert);
 }
 
 /*

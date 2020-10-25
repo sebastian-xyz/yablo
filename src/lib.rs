@@ -9,7 +9,8 @@ use rev_lines::RevLines;
 use std::io::Write;
 
 const TIME_INCREMENT_PER_RUN: u32 = 4;
-/* 
+
+/*
     Config related functions and structs
 */
 
@@ -79,7 +80,7 @@ turbo = true
             match std::fs::write(format!("{}{}", config_path, "config.toml"), default_config) {
                 Ok(_) => (),
                 Err(x) => {
-                    eprintln!("[{}] Error: {}","!".red() , x);
+                    eprintln!("[{}] Error: {}", "!".red(), x);
                     std::process::exit(1);
                 }
             }
@@ -144,14 +145,14 @@ pub fn get_config() -> Config {
     ) {
         Ok(c) => c,
         Err(x) => {
-            eprintln!("[{}] Error: {}","!".red() , x);
+            eprintln!("[{}] Error: {}", "!".red(), x);
             std::process::exit(1)
         }
     };
     decoded_config
 }
 
-/* 
+/*
     System info collection
 */
 pub struct SystemInfo {
@@ -204,9 +205,11 @@ pub fn get_sys_info(sys: &System, turbo_avail: bool, invert: bool, num_cpus: i32
                 eprintln!("[{}] Error: {}", "!".red(), x);
                 std::process::exit(1)
             }
+        },
         battery_capacity: get_battery_percentage(),
-        }
     }
+}
+
 fn get_battery_percentage() -> u8 {
     let bat0_path = "/sys/class/power_supply/BAT0/capacity";
     let bat1_path = "/sys/class/power_supply/BAT1/capacity";
@@ -260,7 +263,6 @@ fn get_battery_percentage() -> u8 {
             return 101;
         }
     }
-}
 }
 
 fn on_ac_power() -> bool {
@@ -338,13 +340,16 @@ fn on_ac_power() -> bool {
     }
 }
 
-/* 
+/*
     Checks
 */
 
 pub fn check_root() {
     if !Uid::effective().is_root() {
-        eprintln!("[{}] Error: You have to run this program as root!", "!".red());
+        eprintln!(
+            "[{}] Error: You have to run this program as root!",
+            "!".red()
+        );
         std::process::exit(1)
     }
 }
@@ -368,8 +373,11 @@ pub fn check_daemon() {
         .output()
         .expect("Failed to execute command");
 
-    if String::from_utf8_lossy(&output.stdout) == "active" {
-        eprintln!("[{}] Error: Daemon already installed. Nothing to do. Exit.", "!".red());
+    if String::from_utf8_lossy(&output.stdout) == "active\n" {
+        eprintln!(
+            "[{}] Error: Daemon already installed and running. Nothing to do. Exit.",
+            "!".red()
+        );
         std::process::exit(1)
     }
 }
@@ -425,7 +433,10 @@ fn set_turbo(new_state: bool, invert: bool) {
         match std::fs::write(p_state, output) {
             Ok(_) => (),
             Err(_) => {
-                eprintln!("[{}] Error: couldn't write new turbo state. exit.", "!".red());
+                eprintln!(
+                    "[{}] Error: couldn't write new turbo state. exit.",
+                    "!".red()
+                );
                 std::process::exit(1);
             }
         }
@@ -435,7 +446,10 @@ fn set_turbo(new_state: bool, invert: bool) {
         match std::fs::write(cpufreq, output) {
             Ok(_) => (),
             Err(_) => {
-                eprintln!("[{}] Error: couldn't write new turbo state. exit.", "!".red());
+                eprintln!(
+                    "[{}] Error: couldn't write new turbo state. exit.",
+                    "!".red()
+                );
                 std::process::exit(1);
             }
         }
@@ -532,11 +546,29 @@ pub fn print_info(sys_info: &SystemInfo, terminalout: &mut std::io::Stdout) {
                 sys_info.battery_capacity
             );
         }
-    println!("[{}] CPU temp       : {}°C", "+".green(), sys_info.temperature);
-    println!("[{}] Memory usage   : {:.2}GB/{:.2}GB", "+".green(), (sys_info.mem_usage.0 - sys_info.mem_usage.1) as f32/1e9, sys_info.mem_usage.0 as f32/1e9);    
-    println!("[{}] System load    : {:.2}", "+".green(), sys_info.loadavg);
-    println!("[{}] CPU usage      : {:.2}%", "+".green(), sys_info.loadperc);
-    println!("[{}] CPU frequencies: ", "+".green());
+    }
+    println!(
+        "[{}] CPU temp        : {}°C",
+        "+".green(),
+        sys_info.temperature
+    );
+    println!(
+        "[{}] Memory usage    : {:.2}GB/{:.2}GB",
+        "+".green(),
+        (sys_info.mem_usage.0 - sys_info.mem_usage.1) as f32 / 1e9,
+        sys_info.mem_usage.0 as f32 / 1e9
+    );
+    println!(
+        "[{}] System load     : {:.2}",
+        "+".green(),
+        sys_info.loadavg
+    );
+    println!(
+        "[{}] CPU usage       : {:.2}%",
+        "+".green(),
+        sys_info.loadperc
+    );
+    println!("[{}] CPU frequencies : ", "+".green());
     for cpu in 0..sys_info.cpu_freqs.len() {
         println!(
             "    {} CPU{}: {:4}MHz",

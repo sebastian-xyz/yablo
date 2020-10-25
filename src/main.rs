@@ -190,6 +190,13 @@ fn main() {
                 }
             };
         }
+    } else if matches.is_present("update") {
+        lib::check_root();
+        lib::restart_daemon();
+        println!(
+            "[{}] Successfully restarted daemon. New config loaded.",
+            "+".green()
+        );
     } else {
         println!("Type 'yablo --help' to get available options");
     }

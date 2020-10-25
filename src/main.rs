@@ -1,55 +1,20 @@
 extern crate battery;
 extern crate clap;
 extern crate num_cpus;
+extern crate rev_lines;
 extern crate systemstat;
 extern crate toml;
 
-use clap::{App, Arg};
-use systemstat::{Platform, System};
-use crossterm::ExecutableCommand;
 use crossterm::style::Colorize;
+use crossterm::ExecutableCommand;
+use systemstat::{Platform, System};
 
+mod cli;
 mod lib;
 
 fn main() {
-    let matches = App::new("yablo")
-        .version("0.1.0")
-        .about("Yet Another Battery Life Optimizer for Linux")
-        .long_about("Yet Another Battery Life Optimizer for Linux (yablo) automatically sets cpu governor and turbo boost to save energy.")
-        .arg(
-            Arg::with_name("daemon")
-                .long("daemon")
-                .hidden(true)
-                .takes_value(false),
-        )
-        .arg(
-            Arg::with_name("debug")
-                .short("d")
-                .long("debug")
-                .help("Shows debug/system info")
-                .takes_value(false),
-        )
-        .arg(
-            Arg::with_name("live")
-                .short("l")
-                .long("live")
-                .help("Prints information and applies suggested CPU optimizations")
-                .takes_value(false),
-        )
-        .arg(
-            Arg::with_name("log")
-                .long("log")
-                .help("View live CPU optimization log made by daemon")
-                .takes_value(false),
-        )
-        .arg(
-            Arg::with_name("monitor")
-                .short("m")
-                .long("monitor")
-                .help("Suggests CPU optimizations for the current load")
-                .takes_value(false),
-        )
-        .get_matches();
+
+    let matches = cli::build_cli().get_matches();
 
     if matches.is_present("daemon") {
         lib::check_root();

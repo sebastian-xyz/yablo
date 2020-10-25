@@ -149,8 +149,24 @@ fn main() {
         }
     } else if matches.is_present("log") {
         let num_cores = num_cpus::get() as i32;
-        let (turbo_available, _) = lib::check_turbo_availability();
-        lib::read_log(num_cores, turbo_available);
+        let mut stdout = std::io::stdout();
+        match stdout.execute(crossterm::terminal::EnterAlternateScreen) {
+            Ok(_) => (),
+            Err(x) => {
+                eprintln!("[{}] Error: {}", "!".red(), x);
+                std::process::exit(1)
+            }
+        };
+        loop {
+            lib::print_log(num_cores, &mut stdout);
+            match lib::quit_program(500, &mut stdout) {
+                Ok(_) => (),
+                Err(err) => {
+                    eprintln!("Error: {}", err);
+                    std::process::exit(1)
+                }
+            };
+        }
     } else if matches.is_present("debug") {
         let mut stdout = std::io::stdout();
         match stdout.execute(crossterm::terminal::EnterAlternateScreen) {

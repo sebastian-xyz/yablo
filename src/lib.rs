@@ -765,7 +765,7 @@ pub fn monitor_state(
     println!("{} Suggest optimzations {}", ":".repeat(14), ":".repeat(14));
     println!("{}\n", ":".repeat(50));
     if sys_info.ac_power {
-        if sys_info.loadavg > (10.0 * cpus as f32) / 100.0 {
+        if sys_info.loadavg > (50.0 * cpus as f32) / 100.0 {
             println!("[{}] High system load", "+".green());
             println!(
                 "[{}] Suggesting use of '{}' governor",
@@ -808,7 +808,7 @@ pub fn monitor_state(
                     println!("[{}] Turbo is currently off", "+".green());
                 }
             }
-        } else if sys_info.loadperc >= 25.0 {
+        } else if sys_info.loadperc >= 20.0 {
             println!("[{}] High CPU usage", "+".green());
             println!(
                 "[{}] Suggesting use of '{}' governor",
@@ -878,7 +878,7 @@ pub fn monitor_state(
             *counter = 0;
         }
     } else {
-        if sys_info.loadavg > (15.0 * cpus as f32) / 100.0 {
+        if sys_info.loadavg > (75.0 * cpus as f32) / 100.0 {
             println!("[{}] High system load", "+".green());
             println!(
                 "[{}] Suggesting use of '{}' governor",
@@ -921,7 +921,7 @@ pub fn monitor_state(
                     println!("[{}] Turbo is currently off", "+".green());
                 }
             }
-        } else if sys_info.loadperc >= 15.0 {
+        } else if sys_info.loadperc >= 30.0 {
             println!("[{}] High CPU usage", "+".green());
             println!(
                 "[{}] Using '{}' governor",

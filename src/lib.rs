@@ -25,6 +25,10 @@ pub struct PowerConfigAC {
     pub second_stage_governor: Option<String>,
     #[serde(default = "default_turbo_delay_governor_plugged_in")]
     pub turbo_delay: Option<u32>,
+    #[serde(default = "default_loadperc_threshold_plugged_in")]
+    pub loadperc_threshold: Option<f32>,
+    #[serde(default = "default_loadavg_threshold_plugged_in")]
+    pub loadavg_threshold: Option<f32>,
 }
 
 #[derive(Debug, Deserialize, Clone, Default)]
@@ -39,6 +43,10 @@ pub struct PowerConfigBat {
     pub battery_threshold: Option<u8>,
     #[serde(default = "default_low_battery_governor")]
     pub low_battery_governor: Option<String>,
+    #[serde(default = "default_loadperc_threshold_on_battery")]
+    pub loadperc_threshold: Option<f32>,
+    #[serde(default = "default_loadavg_threshold_on_battery")]
+    pub loadavg_threshold: Option<f32>,
 }
 
 pub fn check_config_existence() {
@@ -1025,4 +1033,22 @@ fn default_battery_threshold() -> Option<u8> {
 }
 fn default_low_battery_governor() -> Option<String> {
     Some(String::from("powersave"))
+}
+
+fn default_loadperc_threshold_plugged_in() -> Option<f32> {
+    Some(20.0)
+}
+
+fn default_loadperc_threshold_on_battery() -> Option<f32> {
+    Some(30.0)
+}
+
+fn default_loadavg_threshold_plugged_in() -> Option<f32> {
+    let num_cores = num_cpus::get() as i32;
+    Some((50.0 * num_cores as f32) / 100.0)
+}
+
+fn default_loadavg_threshold_on_battery() -> Option<f32> {
+    let num_cores = num_cpus::get() as i32;
+    Some((75.0 * num_cores as f32) / 100.0)
 }

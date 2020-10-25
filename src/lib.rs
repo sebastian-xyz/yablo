@@ -4,6 +4,7 @@ use systemstat::{Platform, System};
 
 use crossterm::style::Colorize;
 use crossterm::ExecutableCommand;
+use rev_lines::RevLines;
 use std::io::Write;
 
 const TIME_INCREMENT_PER_RUN: u32 = 4;
@@ -996,8 +997,37 @@ pub fn monitor_state(
     };
 }
 
-pub fn read_log(num_cpus: i32, turbo_avail: bool) {
-    let path = "/var/log/yablo.log";
+pub fn print_log(num_cpus: i32, terminalout: &mut std::io::Stdout) {
+    let log_path = "/var/log/yablo.log";
+    let file = std::fs::File::open(log_path).unwrap();
+    let rev_lines = RevLines::new(std::io::BufReader::new(file)).unwrap();
+    let mut last_lines: Vec<String> = Vec::new();
+    let num_lines = num_cpus + 25;
+    let mut i = 0;
+
+    for line in rev_lines {
+        if i >= num_lines {
+            break;
+        }
+        last_lines.push(line);
+
+        i += 1;
+    }
+    last_lines.reverse();
+    match terminalout.execute(crossterm::terminal::Clear(
+        crossterm::terminal::ClearType::All,
+    )) {
+        Ok(_) => (),
+        Err(x) => {
+            eprintln!("[{}] Error: {}", "!".red(), x);
+            std::process::exit(1)
+        }
+    };
+
+    for i in last_lines {
+        println!("{}", i);
+    }
+}
 
     let num_lines = if turbo_avail {
         19 + num_cpus

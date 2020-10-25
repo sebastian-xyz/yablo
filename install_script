@@ -131,9 +131,9 @@ if [[ ${REPLY} =~ ^[Yy]$ ]]; then
 
   else
     fancy_message info "Downloading binary"
-    ARCHIVE_NAME="yablo_0_1_0.tar.gz"
+    ARCHIVE_NAME="yablo_0_2_0.tar.gz"
     sudo -u ${USERNAME} bash -c '\
-      curl -L -s -o yablo_0_1_0.tar.gz "https://github.com/sebastian-xyz/yablo/releases/download/v0.1.0/yablo_0_1_0.tar.gz"
+      curl -L -s -o yablo_0_2_0.tar.gz "https://github.com/sebastian-xyz/yablo/releases/download/v0.2.0/yablo_0_2_0.tar.gz"
     '
     if [ $? -eq 0 ]; then
       fancy_message info "Successfully downloaded binary"
@@ -142,7 +142,7 @@ if [[ ${REPLY} =~ ^[Yy]$ ]]; then
       exit 1
     fi
 
-    SHA_SUM="221180f981c3e616f7025c80efcda64c1e2df62c7d2d3acc0d61407524eb9ff5  yablo_0_1_0.tar.gz"
+    SHA_SUM="faba2a70971507e3db76d726f65a4c62b68db9dfab7c56e410d041e3f3234140  yablo_0_2_0.tar.gz"
     echo ${SHA_SUM} | sha256sum --quiet -c
     if [ $? -eq 0 ]; then
       fancy_message info "Binary verified"
@@ -151,7 +151,7 @@ if [[ ${REPLY} =~ ^[Yy]$ ]]; then
       exit 1
     fi
 
-    tar -xvzf yablo_0_1_0.tar.gz 1> /dev/null
+    tar -xvzf yablo_0_2_0.tar.gz 1> /dev/null
     if [ $? -eq 0 ]; then
       fancy_message info "Extracted binary"
     else
@@ -210,7 +210,7 @@ if [[ ${REPLY} =~ ^[Yy]$ ]]; then
   fancy_message info "Successfully installed yablo"
   
   fancy_message info "Cleaning up"
-  rm yablo_0_1_0.tar.gz yablo
+  rm yablo_0_2_0.tar.gz yablo
 
 else
   fancy_message error "Aborting"

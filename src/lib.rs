@@ -167,13 +167,7 @@ pub fn get_sys_info(sys: &System, turbo_avail: bool, invert: bool, num_cpus: i32
                 std::process::exit(1)
             }
         },
-        ac_power: match sys.on_ac_power() {
-            Ok(ac_pow) => ac_pow,
-            Err(x) => {
-                eprintln!("[{}] Error: {}", "!".red(), x);
-                std::process::exit(1)
-            }
-        },
+        ac_power: on_ac_power(),
         loadperc: match sys.cpu_load_aggregate() {
             Ok(cpu) => {
                 std::thread::sleep(std::time::Duration::from_millis(1000));
@@ -196,6 +190,81 @@ pub fn get_sys_info(sys: &System, turbo_avail: bool, invert: bool, num_cpus: i32
                 std::process::exit(1)
             }
         }
+    }
+}
+
+fn on_ac_power() -> bool {
+    let bat0_path = "/sys/class/power_supply/BAT0/status";
+    let bat1_path = "/sys/class/power_supply/BAT1/status";
+    let bat0_avail = match std::fs::metadata(bat0_path) {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+    let bat1_avail = match std::fs::metadata(bat1_path) {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+    let batteries = (bat0_avail, bat1_avail);
+
+    match batteries {
+        (true, true) => {
+            match std::fs::read_to_string(bat0_path) {
+                Ok(status) => {
+                    if status.replace('\n', "").to_lowercase() == "discharging" {
+                        return false;
+                    } else {
+                        match std::fs::read_to_string(bat1_path) {
+                            Ok(status) => {
+                                if status.replace('\n', "").to_lowercase() == "discharging" {
+                                    return false;
+                                } else {
+                                    return true;
+                                }
+                            }
+                            Err(_) => {
+                                eprintln!("[{}] Error: Reading battery status for BAT1 (\'/sys/class/power_supply/BAT1/status\')", "!".red());
+                                std::process::exit(1);
+                            }
+                        };
+                    }
+                }
+                Err(_) => {
+                    eprintln!("[{}] Error: Reading battery status for BAT0 (\'/sys/class/power_supply/BAT0/status\')", "!".red());
+                    std::process::exit(1);
+                }
+            };
+        }
+        (true, false) => {
+            match std::fs::read_to_string(bat0_path) {
+                Ok(status) => {
+                    if status.replace('\n', "").to_lowercase() == "discharging" {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+                Err(_) => {
+                    eprintln!("[{}] Error: Reading battery status for BAT0 (\'/sys/class/power_supply/BAT0/status\')", "!".red());
+                    std::process::exit(1);
+                }
+            };
+        }
+        (false, true) => {
+            match std::fs::read_to_string(bat1_path) {
+                Ok(status) => {
+                    if status.replace('\n', "").to_lowercase() == "discharging" {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+                Err(_) => {
+                    eprintln!("[{}] Error: Reading battery status for BAT1 (\'/sys/class/power_supply/BAT1/status\')", "!".red());
+                    std::process::exit(1);
+                }
+            };
+        }
+        _ => return true,
     }
 }
 

@@ -6,6 +6,7 @@ use crossterm::style::Colorize;
 use crossterm::ExecutableCommand;
 use std::io::Write;
 
+const TIME_INCREMENT_PER_RUN: u32 = 4;
 /* 
     Config related functions and structs
 */
@@ -623,7 +624,6 @@ pub fn monitor_state(
     counter: &mut u32,
     terminalout: &mut std::io::Stdout,
 ) {
-    let time_increment_per_run = 4;
     println!("{}", ":".repeat(50));
     println!("{} Suggest optimzations {}", ":".repeat(14), ":".repeat(14));
     println!("{}\n", ":".repeat(50));
@@ -647,7 +647,7 @@ pub fn monitor_state(
                 get_governor()
             );
             if config.plugged_in.as_ref().unwrap().turbo.unwrap() {
-                *counter = *counter + time_increment_per_run;
+                *counter = *counter + TIME_INCREMENT_PER_RUN;
                 if *counter >= (*config).plugged_in.as_ref().unwrap().turbo_delay.unwrap() {
                     println!("[{}] Suggesting setting Turbo on", "+".green());
                     if get_turbo(sys_info.turbo_invert) {
@@ -690,7 +690,7 @@ pub fn monitor_state(
                 get_governor()
             );
             if config.plugged_in.as_ref().unwrap().turbo.unwrap() {
-                *counter = *counter + time_increment_per_run;
+                *counter = *counter + TIME_INCREMENT_PER_RUN;
                 if *counter >= (*config).plugged_in.as_ref().unwrap().turbo_delay.unwrap() {
                     println!("[{}] Suggesting setting Turbo on", "+".green());
                     if get_turbo(sys_info.turbo_invert) {
@@ -760,7 +760,7 @@ pub fn monitor_state(
                 get_governor()
             );
             if config.on_battery.as_ref().unwrap().turbo.unwrap() {
-                *counter = *counter + time_increment_per_run;
+                *counter = *counter + TIME_INCREMENT_PER_RUN;
                 if *counter >= (*config).on_battery.as_ref().unwrap().turbo_delay.unwrap() {
                     println!("[{}] Suggesting setting Turbo on", "+".green());
                     if get_turbo(sys_info.turbo_invert) {
@@ -798,7 +798,7 @@ pub fn monitor_state(
                     .unwrap()
             );
             if config.on_battery.as_ref().unwrap().turbo.unwrap() {
-                *counter = *counter + time_increment_per_run;
+                *counter = *counter + TIME_INCREMENT_PER_RUN;
                 if *counter >= (*config).on_battery.as_ref().unwrap().turbo_delay.unwrap() {
                     println!("[{}] Suggesting setting Turbo on", "+".green());
                     if get_turbo(sys_info.turbo_invert) {

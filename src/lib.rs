@@ -511,9 +511,22 @@ pub fn print_info(sys_info: &SystemInfo, terminalout: &mut std::io::Stdout) {
     }
     if sys_info.ac_power {
         println!("[{}] Currently running on AC power", "+".green());
+        if sys_info.battery_capacity != 101 {
+            println!(
+                "[{}] Battery capacity: {}%",
+                "+".green(),
+                sys_info.battery_capacity
+            );
+        }
     } else {
         println!("[{}] Currently running on battery power", "+".green());
-    }
+        if sys_info.battery_capacity != 101 {
+            println!(
+                "[{}] Battery capacity: {}%",
+                "+".green(),
+                sys_info.battery_capacity
+            );
+        }
     println!("[{}] CPU temp       : {}°C", "+".green(), sys_info.temperature);
     println!("[{}] Memory usage   : {:.2}GB/{:.2}GB", "+".green(), (sys_info.mem_usage.0 - sys_info.mem_usage.1) as f32/1e9, sys_info.mem_usage.0 as f32/1e9);    
     println!("[{}] System load    : {:.2}", "+".green(), sys_info.loadavg);

@@ -2,6 +2,7 @@ use nix::unistd::Uid;
 use serde_derive::Deserialize;
 use systemstat::{Platform, System};
 
+use crossterm::event::{poll, read, Event, KeyCode, KeyEvent};
 use crossterm::style::Colorize;
 use crossterm::ExecutableCommand;
 use rev_lines::RevLines;
@@ -897,8 +898,45 @@ pub fn print_log(num_cpus: i32, terminalout: &mut std::io::Stdout) {
     }
 }
 
-    let num_lines = if turbo_avail {
-        19 + num_cpus
+pub fn quit_program(poll_time: u64, terminalout: &mut std::io::Stdout) -> crossterm::Result<()> {
+    crossterm::terminal::enable_raw_mode()?;
+    if poll(std::time::Duration::from_millis(poll_time))? {
+        match read()? {
+            Event::Key(KeyEvent {
+                code: KeyCode::Char('q'),
+                modifiers: NONE,
+            }) => {
+                crossterm::terminal::disable_raw_mode()?;
+                match terminalout.execute(crossterm::terminal::LeaveAlternateScreen) {
+                    Ok(_) => (),
+                    Err(x) => {
+                        eprintln!("[{}] Error: {}", "!".red(), x);
+                        std::process::exit(1)
+                    }
+                }
+                std::process::exit(0)
+            }
+            Event::Key(KeyEvent {
+                code: KeyCode::Char('c'),
+                modifiers: CONTROL,
+            }) => {
+                crossterm::terminal::disable_raw_mode()?;
+                match terminalout.execute(crossterm::terminal::LeaveAlternateScreen) {
+                    Ok(_) => (),
+                    Err(x) => {
+                        eprintln!("[{}] Error: {}", "!".red(), x);
+                        std::process::exit(1)
+                    }
+                }
+                std::process::exit(0)
+            }
+            _ => (),
+        }
+    }
+    crossterm::terminal::disable_raw_mode()?;
+    Ok(())
+}
+
 pub fn restart_daemon() {
     let output = std::process::Command::new("systemctl")
         .args(&["is-active", "yablo.service"])

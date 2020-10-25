@@ -4,10 +4,10 @@ build = "build.rs"
 clap = "2.33.3"
 
 [package]
-name = "yablo"
-version = "0.1.0"
 authors = ["Sebastian Jung <git.sebastian@gmx.de>"]
 edition = "2018"
+name = "yablo"
+version = "0.2.0"
 
 [dependencies]
 battery = "0.7.6"

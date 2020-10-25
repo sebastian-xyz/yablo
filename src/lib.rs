@@ -149,6 +149,7 @@ pub struct SystemInfo {
     pub turbo_invert: bool,
     pub turbo_avail: bool,
     pub cpu_freqs: Vec<i32>,
+    pub battery_capacity: u8,
 }
 
 pub fn get_sys_info(sys: &System, turbo_avail: bool, invert: bool, num_cpus: i32) -> SystemInfo {
@@ -189,8 +190,63 @@ pub fn get_sys_info(sys: &System, turbo_avail: bool, invert: bool, num_cpus: i32
                 eprintln!("[{}] Error: {}", "!".red(), x);
                 std::process::exit(1)
             }
+        battery_capacity: get_battery_percentage(),
         }
     }
+fn get_battery_percentage() -> u8 {
+    let bat0_path = "/sys/class/power_supply/BAT0/capacity";
+    let bat1_path = "/sys/class/power_supply/BAT1/capacity";
+    let bat0_avail = match std::fs::metadata(bat0_path) {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+    let bat1_avail = match std::fs::metadata(bat1_path) {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+    let batteries = (bat0_avail, bat1_avail);
+
+    match batteries {
+        (true, true) => {
+            let bat0_capacity = match std::fs::read_to_string(bat0_path) {
+                Ok(capacity) => capacity.replace('\n', "").parse::<u8>().unwrap(),
+                Err(_) => {
+                    eprintln!("[{}] Error: Reading battery capacity for BAT0 (\'/sys/class/power_supply/BAT0/capacity\')", "!".red());
+                    std::process::exit(1);
+                }
+            };
+            let bat1_capacity = match std::fs::read_to_string(bat1_path) {
+                Ok(capacity) => capacity.replace('\n', "").parse::<u8>().unwrap(),
+                Err(_) => {
+                    eprintln!("[{}] Error: Reading battery capacity for BAT1 (\'/sys/class/power_supply/BAT1/capacity\')", "!".red());
+                    std::process::exit(1);
+                }
+            };
+            return (bat0_capacity + bat1_capacity) / 2;
+        }
+        (true, false) => {
+            match std::fs::read_to_string(bat0_path) {
+                Ok(capacity) => return capacity.replace('\n', "").parse::<u8>().unwrap(),
+                Err(_) => {
+                    eprintln!("[{}] Error: Reading battery capacity for BAT0 (\'/sys/class/power_supply/BAT0/capacity\')", "!".red());
+                    std::process::exit(1);
+                }
+            };
+        }
+        (false, true) => {
+            match std::fs::read_to_string(bat1_path) {
+                Ok(capacity) => return capacity.replace('\n', "").parse::<u8>().unwrap(),
+                Err(_) => {
+                    eprintln!("[{}] Error: Reading battery capacity for BAT1 (\'/sys/class/power_supply/BAT1/capacity\')", "!".red());
+                    std::process::exit(1);
+                }
+            };
+        }
+        (false, false) => {
+            return 101;
+        }
+    }
+}
 }
 
 fn on_ac_power() -> bool {

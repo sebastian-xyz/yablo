@@ -108,7 +108,13 @@ fn main() {
                 &mut monitor_count,
                 &mut stdout,
             );
-            std::thread::sleep(std::time::Duration::from_secs(3));
+            match lib::quit_program(3000, &mut stdout) {
+                Ok(_) => (),
+                Err(err) => {
+                    eprintln!("Error: {}", err);
+                    std::process::exit(1)
+                }
+            };
         }
     } else if matches.is_present("live") {
         lib::check_root();
@@ -133,7 +139,13 @@ fn main() {
             lib::print_info(&sys_info, &mut stdout);
             lib::optimize_powerstate(&config, &sys_info, num_cores, &mut live_count, &mut stdout);
             println!("{}", ":".repeat(50));
-            std::thread::sleep(std::time::Duration::from_secs(3));
+            match lib::quit_program(3000, &mut stdout) {
+                Ok(_) => (),
+                Err(err) => {
+                    eprintln!("Error: {}", err);
+                    std::process::exit(1)
+                }
+            };
         }
     } else if matches.is_present("log") {
         let num_cores = num_cpus::get() as i32;
@@ -154,6 +166,13 @@ fn main() {
         loop {
             let sys_info = lib::get_sys_info(&sys, turbo_available, invert_turbo, num_cores);
             lib::print_info(&sys_info, &mut stdout)
+            match lib::quit_program(500, &mut stdout) {
+                Ok(_) => (),
+                Err(err) => {
+                    eprintln!("Error: {}", err);
+                    std::process::exit(1)
+                }
+            };
         }
     } else {
         println!("Type 'yablo --help' to get available options");

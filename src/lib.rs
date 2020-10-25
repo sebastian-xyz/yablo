@@ -35,6 +35,10 @@ pub struct PowerConfigBat {
     pub second_stage_governor: Option<String>,
     #[serde(default = "default_turbo_delay_governor_on_battery")]
     pub turbo_delay: Option<u32>,
+    #[serde(default = "default_battery_threshold")]
+    pub battery_threshold: Option<u8>,
+    #[serde(default = "default_low_battery_governor")]
+    pub low_battery_governor: Option<String>,
 }
 
 pub fn check_config_existence() {
@@ -1015,4 +1019,10 @@ fn default_second_stage_governor_on_battery() -> Option<String> {
 }
 fn default_turbo_delay_governor_on_battery() -> Option<u32> {
     Some(0)
+}
+fn default_battery_threshold() -> Option<u8> {
+    Some(0)
+}
+fn default_low_battery_governor() -> Option<String> {
+    Some(String::from("powersave"))
 }

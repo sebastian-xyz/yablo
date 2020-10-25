@@ -52,7 +52,7 @@ fn main() {
         match stdout.execute(crossterm::terminal::EnterAlternateScreen) {
             Ok(_) => (),
             Err(x) => {
-                eprintln!("[{}] Error: {}", "!".red(),  x);
+                eprintln!("[{}] Error: {}", "!".red(), x);
                 std::process::exit(1)
             }
         };
@@ -146,7 +146,7 @@ fn main() {
         let num_cores = num_cpus::get() as i32;
         loop {
             let sys_info = lib::get_sys_info(&sys, turbo_available, invert_turbo, num_cores);
-            lib::print_info(&sys_info, &mut stdout)
+            lib::print_info(&sys_info, &mut stdout);
             match lib::quit_program(500, &mut stdout) {
                 Ok(_) => (),
                 Err(err) => {

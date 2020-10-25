@@ -1031,6 +1031,25 @@ pub fn print_log(num_cpus: i32, terminalout: &mut std::io::Stdout) {
 
     let num_lines = if turbo_avail {
         19 + num_cpus
+pub fn restart_daemon() {
+    let output = std::process::Command::new("systemctl")
+        .args(&["is-active", "yablo.service"])
+        .output()
+        .expect("Failed to execute command");
+
+    if String::from_utf8_lossy(&output.stdout) == "active\n" {
+        let _output = std::process::Command::new("systemctl")
+            .args(&["restart", "yablo.service"])
+            .output()
+            .expect("Failed to execute command");
+    } else {
+        eprintln!(
+            "[{}] Error: Daemon not running. No need to restart daemon to load new config. Exit.",
+            "!".red()
+        );
+        std::process::exit(1)
+    }
+}
     } else {
         20 + num_cpus
     };

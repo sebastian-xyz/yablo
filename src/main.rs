@@ -5,7 +5,7 @@ extern crate rev_lines;
 extern crate systemstat;
 extern crate toml;
 
-use crossterm::style::Colorize;
+use crossterm::style::Stylize;
 use crossterm::ExecutableCommand;
 use systemstat::{Platform, System};
 
@@ -160,7 +160,7 @@ fn main() {
         lib::restart_daemon();
         println!(
             "[{}] Successfully restarted daemon. New config loaded.",
-            "+".green()
+            "+".dark_green()
         );
     } else {
         println!("Type 'yablo --help' to get available options");
